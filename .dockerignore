@@ -1,0 +1,8 @@
+.git
+.gitignore
+.env
+*.pyc
+*.mp3
+__pycache__
+Dockerfile
+docker-compose.yml
