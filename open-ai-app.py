@@ -62,6 +62,34 @@ def correct_spelling(client, transcription, max_retries=3):
                 logger.error("Max retries reached. Unable to correct spelling.")
                 raise e
 
+def generate_email(client, corrected_text, max_retries=3):
+    prompt = f"""
+    Please use the following question to generate an email to my doctor. 
+    Please limit the message to 450 characters:
+
+    {corrected_text}
+    """
+
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that writes concise emails."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=150  # Approximately 450 characters
+            )
+            return response.choices[0].message.content.strip()
+        except RateLimitError as e:
+            if attempt < max_retries - 1:
+                wait_time = 2 ** attempt
+                logger.warning(f"Rate limit hit. Retrying in {wait_time} seconds...")
+                time.sleep(wait_time)  # Exponential backoff
+            else:
+                logger.error("Max retries reached. Unable to generate email.")
+                raise e
+
 def main():
     try:
         api_key = get_api_key()
@@ -69,20 +97,46 @@ def main():
         
         client = OpenAI(api_key=api_key)
         
-        # Transcribe audio
-        audio_file_path = "Blood Sugar Check Questions.mp3"
-        transcription = transcribe_with_retry(client, audio_file_path)
-        logger.info("Transcription completed")
+        audio_files = [
+            "0_Blood Sugar Monitoring Guidelines.mp3",
+            "1_Calcium Supplements_ Stay or Go_.mp3",
+            "2_Managing Daily Tasks with Alzheimer's.mp3",
+            "3_Can I Stop My Hypertension Meds_.mp3",
+            "4_Asthma Meds in Pregnancy_ Safety Guide.mp3",
+            "5_Metformin and Constipation Concerns.mp3",
+            "6_New Options for Depression Treatment.mp3",
+            "7_Breast Cancer Gene Inheritance Risks.mp3",
+            "8_Monitoring Your Heart Health.mp3",
+            "9_Managing Arthritis and Exercise Pain.mp3"
+        ]
         
-        # Correct spelling
-        corrected_text = correct_spelling(client, transcription)
-        logger.info("Spelling correction completed")
-        
-        # Print results
-        print("Original Transcription:")
-        print(transcription)
-        print("\nCorrected Transcription:")
-        print(corrected_text)
+        for audio_file in audio_files:
+            # print("Current working directory:", os.getcwd())
+            # print("Contents of audio_files directory:", os.listdir("audio_files"))
+            logger.info(f"Processing file: {audio_file}")
+            
+            # Transcribe audio
+            audio_file_path = os.path.join("audio_files", audio_file)
+            transcription = transcribe_with_retry(client, audio_file_path)
+            logger.info("Transcription completed")
+            
+            # Correct spelling
+            corrected_text = correct_spelling(client, transcription)
+            logger.info("Spelling correction completed")
+            
+            # Generate email
+            email_content = generate_email(client, corrected_text)
+            logger.info("Email generation completed")
+            
+            # Print results
+            print(f"\nFile: {audio_file}")
+            print("Original Transcription:")
+            print(transcription)
+            print("\nCorrected Transcription:")
+            print(corrected_text)
+            print("\nGenerated Email:")
+            print(email_content)
+            print("-" * 50)
         
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
