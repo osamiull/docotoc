@@ -1,3 +1,20 @@
+# version: '3.8'
+
+# services:
+#   app:
+#     build: .
+#     volumes:
+#       - .:/app
+#     env_file:
+#       - .env
+#     ports:
+#       - "8000:8000"
+#     healthcheck:
+#       test: ["CMD", "curl", "-f", "http://localhost:8000"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 3
+
 version: '3.8'
 
 services:
@@ -5,12 +22,13 @@ services:
     build: .
     volumes:
       - .:/app
+      - ./audio_files:/app/audio_files
     env_file:
       - .env
     ports:
       - "8000:8000"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000')"]
       interval: 30s
       timeout: 10s
       retries: 3
