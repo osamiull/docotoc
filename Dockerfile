@@ -31,4 +31,4 @@ COPY . /app/
 RUN mkdir -p /app/audio_files
 
 # Run the application
-CMD ["python", "open-ai-app.py"]
+CMD ["python", "-u", "open-ai-app.py"]
