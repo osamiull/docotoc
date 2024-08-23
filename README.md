@@ -65,20 +65,18 @@ OPENAI_API_KEY=your_api_key_here
 ## Running the Application
 
 From the root directory of the repository, run the following command:
-docker-compose build && docker-compose up
+docker compose build && docker compose run --rm app
 
 
 This command will:
 1. Build the Docker image for the application
 2. Start the Docker container
 
-The application will process each audio file, transcribe it, correct spelling, and generate an email based on the content.
+The application will process generate an email based on the content from the input from the patient.
 
 ## Viewing Results
 
 The application will output the results to the console, including:
-- Original transcription
-- Corrected transcription
 - Generated email
 
 Each file's results will be separated by a line of dashes for easy reading.
